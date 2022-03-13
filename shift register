@@ -1,0 +1,116 @@
+
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+-- dolaczamy biblioteki
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+ 
+ 
+entity rejest_przesuwny is
+    Port ( Clk : in  STD_LOGIC; -- jako wejscie będzie nasz sygnal zegarowy
+           LED : out STD_LOGIC_VECTOR (7 downto 0)); -- wyjsciem jest linijka LED na naszym zestawie ElbertV2
+end rejest_przesuwny;
+ 
+ 
+architecture Behavioral of rejest_przesuwny is
+---------------------------------------------------------------------
+-- ponizej definicje syg lokalnych
+---------------------------------------------------------------------
+ 
+-- definiujemy rejestr o szerokosci 8 bitow o wart poczatkowej 01 (Hex), binarnie : "00000001";
+-- kazdy bit wyjscia naszego rejestru przesuwnego bedzie podlaczony do jednej diody LED
+signal rej_przesuwny : STD_LOGIC_VECTOR(7 downto 0) := X"01";
+ 
+-- wart max licznika
+constant LICZNIK_LIMIT : integer := 12000000; 
+ 
+-- zdefiniowalismy zmienna o szerokosci 25 bitow
+signal licznik : STD_LOGIC_VECTOR(24 downto 0);	
+---------------------------------------------------------------------
+ 
+-- tutaj jest dyrektywa "begin" odnoszaca sie do "architecture";
+-- od tego momentu mamy do czynienia z kodem opisujacym dzialanie naszego ukladu cyfrowego;
+begin
+ 
+-- nasz proces posiada nazwe "zliczanie_i_przesuwanie", proces jest wykonywany przy kazdej
+-- zmianie wartosci sygnalu zegarowego  
+zliczanie_i_przesuwanie : process(Clk)
+   begin
+      -- ponizszy warunek oznacza "dla narastajacego zbocza syg zegarowego"
+      if rising_edge(Clk) then
+         -- nasz proces posiada dwie konstrukcje "if" jedna jest zagniezdzona w drugiej;
+         if (licznik = LICZNIK_LIMIT) then
+             -- Ponizsza instrukcja jest rownowazna przypisaniu wszystkim bitom danej magistrali wartosci po prawej stronie znaku '=>';
+             licznik <= (others => '0');
+ 
+             -- tutaj jest przeprowadzana esencja procesu przesuwania przeprowadzanego w rejestrze przesuwnym;
+             -- nastepuje przeklejenie najmlodszego bitu na najstarsza pozycje.
+             rej_przesuwny <= rej_przesuwny(0) & rej_przesuwny(7 downto 1);
+ 
+         -- po slowie else nastepuje wykonanie instrukcji w syt gdy warunek z "if" nie bedzie spelniony;
+         else
+            licznik <= licznik + 1;         
+         end if;
+      end if;
+end process zliczanie_i_przesuwanie;
+ 
+-- tutaj jest przeprowadzany proces przypisania kolejno wszystkich bitow magistrali "rej_przesuwny" do wyjsc linijki LED na zestawie ElbertV2.
+LED <= rej_przesuwny;
+ 
+end Behavioral;
